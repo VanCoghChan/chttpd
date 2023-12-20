@@ -52,6 +52,7 @@ build cmake_object_order_depends_target_main.c: phony || CMakeFiles/main.c.dir
 build CMakeFiles/main.c.dir/main.c.obj: C_COMPILER__main.2ec_unscanned_Debug C$:/Users/Nakano$ Yotsuba/Desktop/CN/cchan/main.c || cmake_object_order_depends_target_main.c
   DEP_FILE = CMakeFiles\main.c.dir\main.c.obj.d
   FLAGS = -g -std=gnu11 -fdiagnostics-color=always
+  INCLUDES = -I"C:/Users/Nakano Yotsuba/Desktop/CN/cchan/include"
   OBJECT_DIR = CMakeFiles\main.c.dir
   OBJECT_FILE_DIR = CMakeFiles\main.c.dir
 
@@ -65,7 +66,7 @@ build CMakeFiles/main.c.dir/main.c.obj: C_COMPILER__main.2ec_unscanned_Debug C$:
 
 build main.c.exe: C_EXECUTABLE_LINKER__main.2ec_Debug CMakeFiles/main.c.dir/main.c.obj
   FLAGS = -g
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lws2_32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\main.c.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
