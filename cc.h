@@ -1,8 +1,10 @@
 //
-// Created by Nakano Yotsuba on 2023/12/20.
+// Created by 燦 on 2023/12/20.
 //
 #include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef CCHAN_CC_H
 #define CCHAN_CC_H
@@ -13,7 +15,8 @@
 // 错误处理
 void error_die(const char *string) {
     perror(string);
-    exit(-1);
+    // exit
+    exit(1);
 }
 
 // 获取当前时间并格式化，返回值为格式化后的字符串
@@ -52,12 +55,6 @@ char *get_file_type(char *path){
     return file_type;
 }
 
-// 打印当前工作目录
-void print_cwd(){
-    char buf[512];
-    getcwd(buf, sizeof(buf));
-    printf("cwd: %s\n", buf);
-}
 
 
 

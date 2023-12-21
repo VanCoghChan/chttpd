@@ -1,3 +1,3 @@
-C:/Users/Nakano Yotsuba/Desktop/CN/cchan/cmake-build-debug/CMakeFiles/main.c.dir
-C:/Users/Nakano Yotsuba/Desktop/CN/cchan/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Nakano Yotsuba/Desktop/CN/cchan/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/chencan/桌面/chttpd/cmake-build-debug/CMakeFiles/main.c.dir
+/home/chencan/桌面/chttpd/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/chencan/桌面/chttpd/cmake-build-debug/CMakeFiles/rebuild_cache.dir

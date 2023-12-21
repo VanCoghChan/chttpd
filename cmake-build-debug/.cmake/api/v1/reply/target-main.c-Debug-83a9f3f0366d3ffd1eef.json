@@ -2,10 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "main.c.exe"
-		},
-		{
-			"path" : "main.c.pdb"
+			"path" : "main.c"
 		}
 	],
 	"backtrace" : 1,
@@ -28,13 +25,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 16,
+				"line" : 14,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 10,
+				"line" : 8,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 9,
 				"parent" : 0
 			}
 		]
@@ -52,7 +55,11 @@
 			[
 				{
 					"backtrace" : 2,
-					"path" : "C:/Users/Nakano Yotsuba/Desktop/CN/cchan/include"
+					"path" : "/home/chencan/\u684c\u9762/chttpd/include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "/home/chencan/\u684c\u9762/chttpd/-lpthread"
 				}
 			],
 			"language" : "C",
@@ -82,21 +89,12 @@
 			{
 				"fragment" : "",
 				"role" : "flags"
-			},
-			{
-				"backtrace" : 1,
-				"fragment" : "-lws2_32",
-				"role" : "libraries"
-			},
-			{
-				"fragment" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32",
-				"role" : "libraries"
 			}
 		],
 		"language" : "C"
 	},
 	"name" : "main.c",
-	"nameOnDisk" : "main.c.exe",
+	"nameOnDisk" : "main.c",
 	"paths" : 
 	{
 		"build" : ".",

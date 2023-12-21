@@ -1,121 +1,1 @@
-#include <stdio.h>
-#include <WinSock2.h>
-#include <string.h>
-#include <unistd.h>
-#include "cc.h"
-#include "cchttpd.h"
-
-
-#pragma comment(lib, "ws2_32.lib")
-
-
-// å¤„ç†ç”¨æˆ·è¯·æ±‚çš„çº¿ç¨‹å‡½æ•°
-DWORD WINAPI handle_request(LPVOID arg){
-    char buf[4096];
-    int client_sock = (SOCKET) arg;
-    //è¯»ç¬¬ä¸€è¡Œæ•°æ®
-    get_line(client_sock, buf, sizeof(buf));
-    //è·å–å½“å‰æ—¶é—´
-    char *current_time = get_time_str();
-    PRINTF(buf, current_time);
-    // åˆ¤æ–­è¯·æ±‚ç±»å‹å¹¶è·å–url
-    char method[255];
-    char url[255];
-    char path[512];
-    sscanf(buf, "%[^ ] %[^ ]", method, url);
-    // åˆ¤æ–­è¯·æ±‚ç±»å‹
-    if (stricmp(method, "GET") == 0){
-        // åˆ¤æ–­urlæ˜¯å¦ä¸ºæ ¹ç›®å½•
-        if (strcmp(url, "/") == 0){
-            strcpy(path, "./resources/index.html");
-        }
-        else{
-            strcpy(path, "./resources");
-            strcat(path, url);
-        }
-        // æ‰“å¼€æ–‡ä»¶
-        FILE *fp = fopen(path, "rb");
-        if (fp == NULL){
-            // å¦‚æœæ–‡ä»¶ä¸å­˜åœ¨ï¼Œè¿”å›404ä¿¡æ¯
-            send_404(client_sock);
-        }
-        else{
-            // å¦‚æœæ–‡ä»¶å­˜åœ¨
-            // å…ˆåˆ¤æ–­pathæŒ‡å‘çš„æ–‡ä»¶ç±»å‹
-            char *file_type = get_file_type(path);
-            // å‘é€æ–‡ä»¶å†…å®¹å‰ï¼Œå…ˆå‘é€ç¡®è®¤ç›¸åº”å¤´
-            send_response_header(client_sock, file_type);
-            // æœ€åå†è¯»å–æ–‡ä»¶å†…å®¹å¹¶å‘é€
-            int bytees_read = 0;
-            while (1){
-                // è¯»å–æ–‡ä»¶å†…å®¹,n>0åˆ™æˆåŠŸè¯»å–åˆ°æ–‡ä»¶å†…å®¹
-                int n = fread(buf, sizeof(char), sizeof(buf), fp);
-                if (n > 0){
-                    send(client_sock, buf, n, 0);
-                    bytees_read += n;
-                }
-                else{
-                    break;
-                }
-            }
-            fclose(fp);
-        }
-    }
-    else{
-        // ä¸æ”¯æŒçš„è¯·æ±‚ç±»å‹ POST
-        send_501(client_sock);
-
-    }
-    return 0;
-}
-
-
-int main(void){
-    // ä½¿ç”¨utf-8ç¼–ç ï¼Œé¿å…å‘½ä»¤è¡Œä¸­æ–‡ä¹±ç 
-    system("chcp 65001");
-    // åˆ‡æ¢å·¥ä½œç›®å½•ä¸ºä¸Šå±‚ç›®å½•
-    chdir("..");
-    unsigned short port_80 = 80, port_443 = 443;
-    int server_sock_80 = start_server(&port_80);
-    printf("Server started on port %d...\n", port_80);
-    struct sockaddr_in client_addr;
-    int client_addr_len = sizeof(client_addr);
-    while (1) {
-        // é˜»å¡å¼ç­‰å¾…å®¢æˆ·ç«¯è¿æ¥
-        int client_sock_80 = accept(
-                server_sock_80,
-                (struct sockaddr *) &client_addr,
-                &client_addr_len
-                );
-        if (client_sock_80 == INVALID_SOCKET) {
-            printf("accept æ¥å—å¤±è´¥ %d\n", WSAGetLastError());
-            error_die("æ¥å—å¤±è´¥");
-        }
-
-        // ä½¿ç”¨client_sockä¸å®¢æˆ·ç«¯é€šä¿¡,ä½¿ç”¨å¤šçº¿ç¨‹å¤„ç†å¤šä¸ªæœåŠ¡è¯·æ±‚
-        // åˆ›å»ºä¸€ä¸ªæ–°çš„çº¿ç¨‹ï¼Œç”¨äºç›‘å¬80ç«¯å£ï¼ˆhttpï¼‰
-        DWORD thread_id = 0;
-        HANDLE thread = CreateThread(
-                0,   // é»˜è®¤å®‰å…¨å±æ€§
-                0,      // é»˜è®¤å †æ ˆå¤§å°
-                handle_request, // çº¿ç¨‹å‡½æ•°
-                (void *) client_sock_80, // çº¿ç¨‹å‡½æ•°å‚æ•°
-                0,      // é»˜è®¤åˆ›å»ºåç«‹å³æ‰§è¡Œ
-                &thread_id  // çº¿ç¨‹id
-                );
-
-        // åˆ›å»ºå¦ä¸€ä¸ªçº¿ç¨‹ï¼Œç”¨äºç›‘å¬443ç«¯å£ï¼ˆhttpsï¼‰
-//        DWORD thread_id2 = 1;
-//        HANDLE thread2 = CreateThread(
-//                0,   // é»˜è®¤å®‰å…¨å±æ€§
-//                0,      // é»˜è®¤å †æ ˆå¤§å°
-//                handle_request, // çº¿ç¨‹å‡½æ•°
-//                (void *) client_sock_80, // çº¿ç¨‹å‡½æ•°å‚æ•°
-//                0,      // é»˜è®¤åˆ›å»ºåç«‹å³æ‰§è¡Œ
-//                &thread_id2  // çº¿ç¨‹id
-//                );
-
-    }
-    closesocket(server_sock_80);
-    return 0;
-}
+// Created by  N on 2023/12/21.#include<unistd.h>#include<arpa/inet.h>#include<string.h>#include <pthread.h>#include <fcntl.h>#include <openssl/ssl.h>#include "cc.h"#include "cchttpd.h"// ³õÊ¼»¯sslSSL_CTX *init_ssl(){    SSL_CTX *ctx;    // ³õÊ¼»¯ssl¿â    SSL_library_init();    // ¼ÓÔØËùÓĞsslËã·¨    OpenSSL_add_all_algorithms();    // ¼ÓÔØËùÓĞssl´íÎóĞÅÏ¢    SSL_load_error_strings();    // ´´½¨sslÉÏÏÂÎÄ    ctx = SSL_CTX_new(SSLv23_server_method());    if (ctx == NULL){        PRINTF("SSL_CTX_new error\n", get_time_str());        exit(1);    }    // ¼ÓÔØÖ¤Êé    if (SSL_CTX_use_certificate_file(ctx, "./keys/cnlab.cert", SSL_FILETYPE_PEM) <= 0){        PRINTF("SSL_CTX_use_certificate_file error\n", get_time_str());        exit(1);    }    // ¼ÓÔØË½Ô¿    if (SSL_CTX_use_PrivateKey_file(ctx, "./keys/cnlab.prikey", SSL_FILETYPE_PEM) <= 0){        PRINTF("SSL_CTX_use_PrivateKey_file error\n", get_time_str());        exit(1);    }    // ¼ì²éË½Ô¿ÊÇ·ñÕıÈ·    if (!SSL_CTX_check_private_key(ctx)){        PRINTF("SSL_CTX_check_private_key error\n", get_time_str());        exit(1);    }    return ctx;}int main(void){    // ÇĞ»»¹¤×÷Ä¿Â¼ÎªÉÏ²ãÄ¿Â¼    chdir("..");    unsigned short port_80 = 80, port_443 = 443;    int server_sock_80 = start_server(&port_80);    int server_sock_443 = start_server(&port_443);    printf("http Server started on port %d...\n", port_80);    printf("https Server started on port %d...\n", port_443);    struct sockaddr_in client_addr;    int client_addr_len = sizeof(client_addr);    int maxfd;    // ÉèÖÃsocketÎª·Ç×èÈû    fcntl(server_sock_80, F_SETFL, O_NONBLOCK);    fcntl(server_sock_443, F_SETFL, O_NONBLOCK);    maxfd = server_sock_80 > server_sock_443 ? server_sock_80 : server_sock_443;    while (1) {        fd_set readfds;        FD_ZERO(&readfds);        FD_SET(server_sock_80, &readfds);        FD_SET(server_sock_443, &readfds);        int ret = select(maxfd + 1, &readfds, NULL, NULL, NULL);        if (ret < 0) {            printf("select error\n");            continue;        }        if (FD_ISSET(server_sock_80, &readfds)) {            // ÓĞĞÂµÄÁ¬½ÓÇëÇó(http)            int client_sock_80 = accept(                    server_sock_80,                    (struct sockaddr *) &client_addr,                    &client_addr_len                    );            // ÉèÖÃsocketÎª·Ç×èÈû            fcntl(client_sock_80, F_SETFL, O_NONBLOCK);            maxfd = client_sock_80 > maxfd ? client_sock_80 : maxfd;            // Ê¹ÓÃclient_sockÓë¿Í»§¶ËÍ¨ĞÅ,Ê¹ÓÃ¶àÏß³Ì´¦Àí¶à¸ö·şÎñÇëÇó            // ´´½¨Ò»¸öĞÂµÄÏß³Ì£¬ÓÃÓÚ¼àÌı80¶Ë¿Ú£¨http£©            pthread_t thread;            pthread_create(&thread, NULL, handle_request_80, &client_sock_80);            pthread_detach(thread);        }        if (FD_ISSET(server_sock_443, &readfds)) {            // ÓĞĞÂµÄÁ¬½ÓÇëÇó(https)            int client_sock_443 = accept(                    server_sock_443,                    (struct sockaddr *) &client_addr,                    &client_addr_len                    );            // ÉèÖÃsocketÎª·Ç×èÈû            fcntl(client_sock_443, F_SETFL, O_NONBLOCK);            maxfd = client_sock_443 > maxfd ? client_sock_443 : maxfd;            // ĞÂ½¨Ò»¸öÏß³Ì£¬ÓÃÓÚ¼àÌı443¶Ë¿Ú£¨https£©            pthread_t thread2;            pthread_create(&thread2, NULL, handle_request_443, &client_sock_443);            pthread_detach(thread2);        }    }    // close server socket    close(server_sock_80);    return 0;}
